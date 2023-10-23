@@ -27,6 +27,7 @@ type CoapServer struct {
 }
 
 func NewCoapService(sd *service.DriverService) *CoapServer {
+	sd.GetCustomParam()
 	return &CoapServer{
 		sd: sd,
 	}

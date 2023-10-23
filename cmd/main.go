@@ -15,37 +15,18 @@
 package main
 
 import (
-	"context"
 	"github.com/winc-link/hummingbird-coap-driver/config"
 	"github.com/winc-link/hummingbird-coap-driver/internal/driver"
-	"os"
-	"os/signal"
-	"syscall"
-
 	"github.com/winc-link/hummingbird-sdk-go/commons"
 	"github.com/winc-link/hummingbird-sdk-go/service"
 )
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
 	driverService := service.NewDriverService("hummingbird-coap-driver", commons.HummingbirdIot)
 	config.InitConfig(driverService)
-	tcpDriver := driver.NewCoapProtocolDriver(ctx, driverService)
-	go func() {
-		if err := driverService.Start(tcpDriver); err != nil {
-			driverService.GetLogger().Error("driver service start error: %s", err)
-			return
-		}
-	}()
-	waitForSignal(cancel)
-}
-
-func waitForSignal(cancel context.CancelFunc) os.Signal {
-	signalChan := make(chan os.Signal, 1)
-	defer close(signalChan)
-	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
-	s := <-signalChan
-	cancel()
-	signal.Stop(signalChan)
-	return s
+	coapDriver := driver.NewCoapProtocolDriver(driverService)
+	if err := driverService.Start(coapDriver); err != nil {
+		driverService.GetLogger().Error("driver service start error: %s", err)
+		return
+	}
 }
